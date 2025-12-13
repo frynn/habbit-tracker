@@ -10,13 +10,36 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon } from "lucide-react";
-import {
-  Item,
-  ItemContent,
-  ItemTitle,
-  ItemDescription,
-} from "@/components/ui/item";
 import { useState } from "react";
+import type { HabitDto } from "@/types/habit";
+import { HabitCard } from "@/components/HabitCard";
+
+const habits: HabitDto[] = [
+  {
+    id: "a1f1e2c0-1111-4c9b-9c1a-aaa111aaa111",
+    title: "Walk",
+    frequency: "monthly",
+    startDate: "2025-01-10T00:00:00Z",
+    categoryId: "cat-health",
+    categoryName: "Health",
+  },
+  {
+    id: "b2f2e2c0-2222-4c9b-9c1a-bbb222bbb222",
+    title: "Read",
+    frequency: "daily",
+    startDate: "2025-02-03T00:00:00Z",
+    categoryId: "cat-education",
+    categoryName: "Education",
+  },
+  {
+    id: "c3f3e2c0-3333-4c9b-9c1a-ccc333ccc333",
+    title: "Meditate",
+    frequency: "daily",
+    startDate: "2025-03-01T00:00:00Z",
+    categoryId: "cat-mind",
+    categoryName: "Mindfulness",
+  },
+];
 
 export default function Home() {
   const defaultCategories = [
@@ -57,7 +80,7 @@ export default function Home() {
 
   return (
     <div>
-      <h3 className="text-xl/6 font-medium">Home</h3>
+      <h3 className="text-xl/6 font-medium pl-2">Home</h3>
       <ButtonGroup className="w-full p-1">
         <Input placeholder="Search..." />
         <Button variant="outline" aria-label="Search">
@@ -65,11 +88,12 @@ export default function Home() {
         </Button>
       </ButtonGroup>
       <div className="flex justify-between p-1 mb-1 items-center">
-        <h4 className="font-medium">Your habits (2)</h4>
+        <h4 className="font-medium pl-1">Your habits ({habits.length})</h4>
         <ButtonGroup>
           <Button variant="outline" size="sm">
             Filters
           </Button>
+          {/* TODO: Чтобы не закрывалась после выбора одного из фильтров */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="pl-2">
@@ -130,34 +154,10 @@ export default function Home() {
           </DropdownMenu>
         </ButtonGroup>
       </div>
-      <div className="p-1">
-        {/* This is 1 card */}
-        <Item variant="outline">
-          <ItemContent>
-            <ItemTitle>Walk</ItemTitle>
-            <ItemDescription>Goal: 3000 steps | daily</ItemDescription>
-            <div className="flex items-center gap-1 justify-center pt-0.5 pb-0.5">
-              <Item variant="muted" className="flex-col gap-0.5 grow">
-                <ItemTitle className="text-center">4 days</ItemTitle>
-                <ItemDescription className="text-center">
-                  Finished
-                </ItemDescription>
-              </Item>
-              <Item variant="muted" className="flex-col gap-0.5 grow">
-                <ItemTitle className="text-center">15 %</ItemTitle>
-                <ItemDescription className="text-center">
-                  Completed
-                </ItemDescription>
-              </Item>
-              <Item variant="muted" className="flex-col gap-0.5 grow">
-                <ItemTitle className="text-center">400/3000</ItemTitle>
-                <ItemDescription className="text-center">Steps</ItemDescription>
-              </Item>
-            </div>
-            <ItemTitle>Calendar</ItemTitle>
-            <Item>{/* react calendar heatmap */}</Item>
-          </ItemContent>
-        </Item>
+      <div className="p-1 flex flex-col gap-1">
+        {habits.map((habit) => (
+          <HabitCard key={habit.id} habit={habit} />
+        ))}
       </div>
     </div>
   );
