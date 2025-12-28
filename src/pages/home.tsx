@@ -55,8 +55,8 @@ export default function Home() {
     "Hobby",
   ];
 
-  const [selected, setSelected] = useState<string[]>([]);
-  const [debouncedSelected, setDebouncedSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(["All"]);
+  const [debouncedSelected, setDebouncedSelected] = useState<string[]>(["All"]);
   const [isFiltering, setIsFiltering] = useState(false);
 
   useEffect(() => {
@@ -68,6 +68,12 @@ export default function Home() {
     }, 400);
 
     return () => clearTimeout(handler);
+  }, [selected]);
+
+  useEffect(() => {
+    if (selected.length === 0) {
+      setSelected(["All"]);
+    }
   }, [selected]);
 
   const filteredHabits = useMemo(() => {
@@ -127,7 +133,7 @@ export default function Home() {
                     onCheckedChange={(checked) =>
                       toggleCategory(cat, !!checked)
                     }
-                    onSelect={(event) => event.preventDefault()} // ⬅️ ключевая строка
+                    onSelect={(event) => event.preventDefault()}
                   >
                     {cat}
                   </DropdownMenuCheckboxItem>

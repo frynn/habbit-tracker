@@ -10,8 +10,8 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { GOAL_UNITS } from "@/types/cfgUnit";
 
 type Frequency =
   | "daily"
@@ -20,25 +20,36 @@ type Frequency =
   | "3_times_week"
   | "2_times_week";
 
-type GoalUnit = "times" | "steps" | "minutes";
+type GoalUnit = "times" | "steps" | "minutes" | "kcal";
+type Category = {
+  id: string;
+  name: string;
+  defaultUnit: GoalUnit;
+};
 
 export default function AddHabit() {
   /* ---------- Categories ---------- */
-  const defaultCategories = [
-    "Health",
-    "Productivity",
-    "Education",
-    "Fitness",
-    "Finance",
-    "Mindfulness",
-    "Work",
-    "Hobby",
+  const initialCategories: Category[] = [
+    { id: "health", name: "Health", defaultUnit: "steps" },
+    { id: "education", name: "Education", defaultUnit: "minutes" },
+    { id: "fitness", name: "Fitness", defaultUnit: "times" },
   ];
 
-  const [categories, setCategories] = useState(defaultCategories);
-  const [category, setCategory] = useState<string | null>(null);
-  const [newCategory, setNewCategory] = useState("");
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+
+  const selectedCategory = categories.find((c) => c.id === categoryId) ?? null;
+
+  useEffect(() => {
+    if (selectedCategory) {
+      setGoalUnit(selectedCategory.defaultUnit);
+    }
+  }, [selectedCategory]);
+
+  /* create category */
   const [creatingCategory, setCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryUnit, setNewCategoryUnit] = useState<GoalUnit>("times");
 
   /* ---------- Form fields ---------- */
   const [title, setTitle] = useState("");
@@ -50,7 +61,7 @@ export default function AddHabit() {
   const handleSubmit = () => {
     const payload = {
       title,
-      category,
+      categoryId,
       frequency,
       goalValue,
       goalUnit,
@@ -102,13 +113,13 @@ export default function AddHabit() {
             <Label>Category</Label>
 
             <Select
-              value={category ?? ""}
+              value={categoryId ?? ""}
               onValueChange={(value) => {
                 if (value === "__new__") {
                   setCreatingCategory(true);
-                  setCategory(null);
+                  setCategoryId(null);
                 } else {
-                  setCategory(value);
+                  setCategoryId(value);
                   setCreatingCategory(false);
                 }
               }}
@@ -119,8 +130,8 @@ export default function AddHabit() {
 
               <SelectContent>
                 {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
                   </SelectItem>
                 ))}
 
@@ -128,28 +139,64 @@ export default function AddHabit() {
               </SelectContent>
             </Select>
           </div>
-          {creatingCategory && (
-            <div className="flex gap-2">
-              <Input
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="New category name"
-                autoFocus
-              />
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const name = newCategory.trim();
-                  if (!name || categories.includes(name)) return;
 
-                  setCategories((prev) => [...prev, name]);
-                  setCategory(name);
-                  setNewCategory("");
-                  setCreatingCategory(false);
-                }}
-              >
-                <CheckIcon className="size-4" />
-              </Button>
+          {creatingCategory && (
+            <div className="space-y-2 rounded-md border p-3">
+              <div className="space-y-1">
+                <Label>Category name</Label>
+                <Input
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="e.g. Nutrition"
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label>Default unit</Label>
+                <Select
+                  value={newCategoryUnit}
+                  onValueChange={(v) => setNewCategoryUnit(v as GoalUnit)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(GOAL_UNITS).map(([value, { label }]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const name = newCategoryName.trim();
+                    if (!name) return;
+
+                    const newCategory: Category = {
+                      id: crypto.randomUUID(),
+                      name,
+                      defaultUnit: newCategoryUnit,
+                    };
+
+                    setCategories((prev) => [...prev, newCategory]);
+                    setCategoryId(newCategory.id);
+
+                    setNewCategoryName("");
+                    setNewCategoryUnit("times");
+                    setCreatingCategory(false);
+
+                    // TODO: POST /categories
+                  }}
+                >
+                  Create category
+                </Button>
+              </div>
             </div>
           )}
 
@@ -165,16 +212,18 @@ export default function AddHabit() {
             />
 
             <Select
-              value={goalUnit}
-              onValueChange={(v) => setGoalUnit(v as GoalUnit)}
+              value={newCategoryUnit}
+              onValueChange={(v) => setNewCategoryUnit(v as GoalUnit)}
             >
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="times">Times</SelectItem>
-                <SelectItem value="steps">Steps</SelectItem>
-                <SelectItem value="minutes">Minutes</SelectItem>
+                {Object.entries(GOAL_UNITS).map(([value, { label }]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -182,7 +231,7 @@ export default function AddHabit() {
           {/* Submit */}
           <Button
             onClick={handleSubmit}
-            disabled={!title || !category || goalValue <= 0}
+            disabled={!title || !categoryId || goalValue <= 0}
           >
             Apply
           </Button>
