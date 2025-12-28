@@ -1,4 +1,4 @@
-import { SearchIcon, PlusIcon, CheckIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { HabitDto } from "@/types/habit";
 import { HabitCard } from "@/components/HabitCard";
+import { HabitCardSkeleton } from "@/components/CardSkeleton";
+import { EmptyHabitsState } from "@/components/EmptyHabitsState";
 
 const habits: HabitDto[] = [
   {
@@ -50,32 +51,47 @@ export default function Home() {
     "Fitness",
     "Finance",
     "Mindfulness",
-    "Work", // 6 — уже будет скролл
+    "Work",
     "Hobby",
   ];
 
-  const [categories, setCategories] = useState(defaultCategories);
   const [selected, setSelected] = useState<string[]>([]);
+  const [debouncedSelected, setDebouncedSelected] = useState<string[]>([]);
+  const [isFiltering, setIsFiltering] = useState(false);
 
-  const [adding, setAdding] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
+  useEffect(() => {
+    setIsFiltering(true);
 
-  const toggleCategory = (cat: string, checked: boolean) => {
-    setSelected((prev) =>
-      checked ? [...prev, cat] : prev.filter((x) => x !== cat)
-    );
-  };
+    const handler = setTimeout(() => {
+      setDebouncedSelected(selected);
+      setIsFiltering(false);
+    }, 400);
 
-  const handleAdd = () => {
-    if (!newCategory.trim()) return;
+    return () => clearTimeout(handler);
+  }, [selected]);
 
-    const name = newCategory.trim();
-    if (!categories.includes(name)) {
-      setCategories((prev) => [...prev, name]);
+  const filteredHabits = useMemo(() => {
+    if (debouncedSelected.length === 0 || debouncedSelected.includes("All")) {
+      return habits;
     }
 
-    setNewCategory("");
-    setAdding(false);
+    return habits.filter((habit) =>
+      debouncedSelected.includes(habit.categoryName ?? "")
+    );
+  }, [debouncedSelected]);
+
+  const toggleCategory = (cat: string, checked: boolean) => {
+    setSelected((prev) => {
+      if (cat === "All") {
+        return checked ? ["All"] : [];
+      }
+
+      const withoutAll = prev.filter((x) => x !== "All");
+
+      return checked
+        ? [...withoutAll, cat]
+        : withoutAll.filter((x) => x !== cat);
+    });
   };
 
   return (
@@ -88,12 +104,13 @@ export default function Home() {
         </Button>
       </ButtonGroup>
       <div className="flex justify-between p-1 mb-1 items-center">
-        <h4 className="font-medium pl-1">Your habits ({habits.length})</h4>
+        <h4 className="font-medium pl-1">
+          Your habits ({filteredHabits.length})
+        </h4>
         <ButtonGroup>
           <Button variant="outline" size="sm">
             Filters
           </Button>
-          {/* TODO: Чтобы не закрывалась после выбора одного из фильтров */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="pl-2">
@@ -102,62 +119,38 @@ export default function Home() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-48">
-              {/* Скролл-область */}
               <div className="max-h-52 overflow-y-auto pr-1">
-                {categories.map((cat) => (
+                {defaultCategories.map((cat) => (
                   <DropdownMenuCheckboxItem
                     key={cat}
                     checked={selected.includes(cat)}
                     onCheckedChange={(checked) =>
                       toggleCategory(cat, !!checked)
                     }
+                    onSelect={(event) => event.preventDefault()} // ⬅️ ключевая строка
                   >
                     {cat}
                   </DropdownMenuCheckboxItem>
                 ))}
               </div>
-
-              <DropdownMenuSeparator />
-
-              {/* Добавить новую категорию */}
-              {!adding ? (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setAdding(true);
-                  }}
-                  className="flex w-full items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-md"
-                >
-                  <PlusIcon className="size-4" />
-                  Add category
-                </button>
-              ) : (
-                <div className="p-2 flex items-center gap-2">
-                  <input
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    placeholder="Category"
-                    className="border rounded px-2 py-1 text-sm w-full"
-                    autoFocus
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleAdd}
-                    className="px-2"
-                  >
-                    <CheckIcon />
-                  </Button>
-                </div>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </ButtonGroup>
       </div>
       <div className="p-1 flex flex-col gap-1">
-        {habits.map((habit) => (
-          <HabitCard key={habit.id} habit={habit} />
-        ))}
+        {isFiltering ? (
+          <>
+            <HabitCardSkeleton />
+            <HabitCardSkeleton />
+            <HabitCardSkeleton />
+          </>
+        ) : filteredHabits.length === 0 ? (
+          <EmptyHabitsState />
+        ) : (
+          filteredHabits.map((habit) => (
+            <HabitCard key={habit.id} habit={habit} />
+          ))
+        )}
       </div>
     </div>
   );
