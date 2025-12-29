@@ -1,7 +1,5 @@
-import { SearchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -102,7 +100,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative pl-2 pr-2">
       <h3 className="text-xl/6 font-medium pl-2">Home</h3>
       <div className="w-full p-1 overflow-visible">
         <HabitSearch />

@@ -61,7 +61,7 @@ export function HabitDetails() {
   const Icon = categoryIcons[habit.categoryName ?? ""] ?? Brush;
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="max-w-3xl space-y-4 pl-2 pr-2">
       {/* Header */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
