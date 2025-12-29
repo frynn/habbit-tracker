@@ -12,13 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { GOAL_UNITS } from "@/types/cfgUnit";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
-type Frequency =
-  | "daily"
-  | "weekly"
-  | "monthly"
-  | "3_times_week"
-  | "2_times_week";
+type Frequency = "daily" | "weekly" | "monthly";
 
 type GoalUnit = "times" | "steps" | "minutes" | "kcal";
 type Category = {
@@ -71,11 +68,16 @@ export default function AddHabit() {
     console.log("Create habit payload:", payload);
     // TODO: POST /habits
   };
+  const navigate = useNavigate();
 
   return (
     <div className="max-w-xl space-y-4">
-      <h3 className="text-xl font-medium pl-2">Create your habit</h3>
-
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft />
+        </Button>
+        <h3 className="text-xl font-medium">Create your habit</h3>
+      </div>
       <Card>
         <CardContent className="space-y-4 pt-6">
           {/* Title */}

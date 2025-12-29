@@ -14,6 +14,7 @@ import { SettingsPrivate } from "./pages/settingsPages/settingsPrivate";
 import { SettingsSystem } from "./pages/settingsPages/settingsSystem";
 import { SettingsUI } from "./pages/settingsPages/settingsUI";
 import { SettingsMain } from "./pages/settingsPages/settingsMain";
+import { HabitDetails } from "./pages/habitDetails";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/add" element={<AddHabit />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/habits/:habitId" element={<HabitDetails />} />
 
           <Route path="/settings" element={<SettingsLayout />}>
             <Route index element={<SettingsMain />} />

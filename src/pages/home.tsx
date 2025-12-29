@@ -14,6 +14,7 @@ import type { HabitDto } from "@/types/habit";
 import { HabitCard } from "@/components/HabitCard";
 import { HabitCardSkeleton } from "@/components/CardSkeleton";
 import { EmptyHabitsState } from "@/components/EmptyHabitsState";
+import { HabitSearch } from "@/components/HabitSearch";
 
 const habits: HabitDto[] = [
   {
@@ -101,14 +102,11 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <div className="relative">
       <h3 className="text-xl/6 font-medium pl-2">Home</h3>
-      <ButtonGroup className="w-full p-1">
-        <Input placeholder="Search..." />
-        <Button variant="outline" aria-label="Search">
-          <SearchIcon />
-        </Button>
-      </ButtonGroup>
+      <div className="w-full p-1 overflow-visible">
+        <HabitSearch />
+      </div>
       <div className="flex justify-between p-1 mb-1 items-center">
         <h4 className="font-medium pl-1">
           Your habits ({filteredHabits.length})
