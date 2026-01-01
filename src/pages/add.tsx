@@ -71,7 +71,7 @@ export default function AddHabit() {
   const navigate = useNavigate();
 
   return (
-    <div className="max-w-xl space-y-4">
+    <div className="max-w-xl space-y-4 pl-2 pr-2">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft />

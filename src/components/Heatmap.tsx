@@ -8,9 +8,11 @@ import {
   Settings2,
   BadgeCheck,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type HeatmapProps = {
   startDate: string; // ISO string из DTO
+  habitId: string;
 };
 
 function getMonthRange(base: Date, offset: number) {
@@ -19,7 +21,7 @@ function getMonthRange(base: Date, offset: number) {
   return { start, end };
 }
 
-export function Heatmap({ startDate }: HeatmapProps) {
+export function Heatmap({ startDate, habitId }: HeatmapProps) {
   const habitCreatedAt = new Date(startDate); // дата создания привычки
   const [offset, setOffset] = useState(0);
 
@@ -42,6 +44,8 @@ export function Heatmap({ startDate }: HeatmapProps) {
       count: Math.floor(Math.random() * 4),
     };
   });
+
+  const navigate = useNavigate();
 
   return (
     <div className="w-full">
@@ -96,7 +100,11 @@ export function Heatmap({ startDate }: HeatmapProps) {
         >
           <ArrowRightIcon />
         </Button>
-        <Button variant="outline" size="icon">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => navigate(`/habits/${habitId}`)}
+        >
           <Settings2 />
         </Button>
       </div>

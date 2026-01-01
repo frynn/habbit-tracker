@@ -113,7 +113,7 @@ export function HabitDetails() {
           <div className="space-y-2">
             <ItemTitle>Calendar</ItemTitle>
             <Item>
-              <Heatmap startDate={habit.startDate} />
+              <Heatmap startDate={habit.startDate} habitId={habit.id} />
             </Item>
           </div>
 

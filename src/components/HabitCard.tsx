@@ -26,11 +26,7 @@ export function HabitCard({ habit }: HabitCardProps) {
   const navigate = useNavigate();
 
   return (
-    <Item
-      variant="outline"
-      className="cursor-pointer hover:bg-muted/50 transition"
-      onClick={() => navigate(`/habits/${habit.id}`)}
-    >
+    <Item variant="outline">
       <ItemContent>
         <div className="flex gap-2 content-center">
           <ItemMedia variant="icon" className="size-9">
@@ -62,7 +58,7 @@ export function HabitCard({ habit }: HabitCardProps) {
         </div>
         <ItemTitle>Calendar</ItemTitle>
         <Item>
-          <Heatmap startDate={habit.startDate} />
+          <Heatmap startDate={habit.startDate} habitId={habit.id} />
         </Item>
       </ItemContent>
     </Item>
