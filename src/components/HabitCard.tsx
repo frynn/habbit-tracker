@@ -9,7 +9,6 @@ import { Footprints, Book, Dumbbell, Brush } from "lucide-react";
 import { Heatmap } from "@/components/Heatmap";
 import type { HabitDto } from "@/types/habit";
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
 type HabitCardProps = {
   habit: HabitDto;
@@ -23,8 +22,6 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 export function HabitCard({ habit }: HabitCardProps) {
-  const navigate = useNavigate();
-
   return (
     <Item variant="outline">
       <ItemContent>
