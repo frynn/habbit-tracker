@@ -34,7 +34,7 @@ const habits: HabitDto[] = [
   {
     id: "c3f3e2c0-3333-4c9b-9c1a-ccc333ccc333",
     title: "Meditate",
-    frequency: "daily",
+    frequency: "weekly",
     startDate: "2025-03-01T00:00:00Z",
     categoryId: "cat-mind",
     categoryName: "Mindfulness",

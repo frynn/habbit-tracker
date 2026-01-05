@@ -9,12 +9,11 @@ import {
   ItemMedia,
 } from "@/components/ui/item";
 
-import { Heatmap } from "@/components/Heatmap";
+import { Heatmap } from "@/components/Heatmap/Heatmap";
 import { Footprints, Book, Dumbbell, Brush, ArrowLeft } from "lucide-react";
 import React from "react";
 
 // временно — потом заменится API
-//TODO: получаем id по клику, делаем запрос и выводим привычку с таким id
 const habits: HabitDto[] = [
   {
     id: "a1f1e2c0-1111-4c9b-9c1a-aaa111aaa111",
@@ -35,7 +34,7 @@ const habits: HabitDto[] = [
   {
     id: "c3f3e2c0-3333-4c9b-9c1a-ccc333ccc333",
     title: "Meditate",
-    frequency: "daily",
+    frequency: "weekly",
     startDate: "2025-03-01T00:00:00Z",
     categoryId: "cat-mind",
     categoryName: "Mindfulness",
@@ -113,7 +112,11 @@ export function HabitDetails() {
           <div className="space-y-2">
             <ItemTitle>Calendar</ItemTitle>
             <Item>
-              <Heatmap startDate={habit.startDate} habitId={habit.id} />
+              <Heatmap
+                startDate={habit.startDate}
+                habitId={habit.id}
+                frequency={habit.frequency} // ← вот это ключевое
+              />
             </Item>
           </div>
 

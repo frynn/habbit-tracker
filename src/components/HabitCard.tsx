@@ -6,7 +6,7 @@ import {
   ItemMedia,
 } from "@/components/ui/item";
 import { Footprints, Book, Dumbbell, Brush } from "lucide-react";
-import { Heatmap } from "@/components/Heatmap";
+import { Heatmap } from "@/components/Heatmap/Heatmap";
 import type { HabitDto } from "@/types/habit";
 import React from "react";
 
@@ -55,7 +55,11 @@ export function HabitCard({ habit }: HabitCardProps) {
         </div>
         <ItemTitle>Calendar</ItemTitle>
         <Item>
-          <Heatmap startDate={habit.startDate} habitId={habit.id} />
+          <Heatmap
+            startDate={habit.startDate}
+            habitId={habit.id}
+            frequency={habit.frequency}
+          />
         </Item>
       </ItemContent>
     </Item>
