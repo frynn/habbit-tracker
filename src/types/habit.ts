@@ -1,7 +1,11 @@
 import { api } from "@/api/client";
 
-export type HabitFrequency = 0 | 1 | 2; // 0 = Daily, 1 = Weekly, 2 = Monthly
-export type GoalUnit = 0 | 1 | 2 | 3;   // 0 = Times, 1 = Steps, 2 = Minutes, 3 = Kcal
+/* ---------------- Enums (numeric) ---------------- */
+
+export type HabitFrequency = 0 | 1 | 2; // Daily, Weekly, Monthly
+export type GoalUnit = 0 | 1 | 2 | 3;   // Times, Steps, Minutes, Kcal
+
+/* ---------------- Habit ---------------- */
 
 export interface HabitCreateRequest {
   title: string;
@@ -9,27 +13,36 @@ export interface HabitCreateRequest {
   goalValue: number;
   goalUnit: GoalUnit;
   startDate: string;
-  categoryId: string; // Guid
+  categoryId: string;
 }
 
-// Для получения привычек можно оставить "человекочитаемый" вариант
 export type HabitDto = {
-  id: string;            // Guid -> string
+  id: string;
   title: string;
   frequency: HabitFrequency;
-  startDate: string;     // ISO string
+  startDate: string;
   categoryId: string;
   categoryName?: string;
   goal?: number;
   goalUnit?: GoalUnit;
-}
+};
 
-// Категории
+/* ---------------- Category ---------------- */
+
 export type Category = {
-  id: string;       // Guid
+  id: string;
   name: string;
   defaultUnit: GoalUnit;
+  isSystem: boolean;
+  habitCount: number;
 };
+
+export interface CategoryCreateRequest {
+  name: string;
+  defaultUnit: GoalUnit;
+}
+
+/* ---------------- API ---------------- */
 
 export const createHabit = async (data: HabitCreateRequest) => {
   const response = await api.post("/habit", data);
@@ -38,5 +51,29 @@ export const createHabit = async (data: HabitCreateRequest) => {
 
 export const getCategories = async (): Promise<Category[]> => {
   const response = await api.get("/category");
+  return response.data;
+};
+
+export const createCategory = async (
+  data: CategoryCreateRequest
+): Promise<Category> => {
+  const response = await api.post("/category", data);
+  return response.data;
+};
+
+/* ---------------- Get habits ---------------- */
+
+/**
+ * Получение привычек с сервера
+ * @param categoryIds опциональный массив id категорий для фильтрации
+ */
+export const getHabits = async (
+  categoryIds?: string[]
+): Promise<HabitDto[]> => {
+  const params = categoryIds && categoryIds.length > 0
+    ? { categories: categoryIds.join(",") }
+    : {};
+
+  const response = await api.get("/habit", { params });
   return response.data;
 };
