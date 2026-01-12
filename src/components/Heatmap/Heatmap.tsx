@@ -1,39 +1,65 @@
-import { useState } from "react";
 import type { HabitFrequency } from "@/types/habit";
+import type { HabitProgressDto, HeatmapValue } from "@/types/heatmap";
 
 import { DailyHeatmap } from "./DailyHeatmap";
 import { WeeklyHeatmap } from "./WeeklyHeatmap";
 import { MonthlyHeatmap } from "./MonthlyHeatmap";
 import { HeatmapControls } from "./HeatmapControls";
+import { useMemo, useState } from "react";
+import { rateToScale } from "@/assets/helpers";
 
 type HeatmapProps = {
-  startDate: string;
   habitId: string;
+  startDate: string;
   frequency: HabitFrequency;
+  progress: HabitProgressDto[];
 };
 
-export function Heatmap({ startDate, habitId, frequency }: HeatmapProps) {
+export function Heatmap({
+  habitId,
+  startDate,
+  frequency,
+  progress,
+}: HeatmapProps) {
   const [offset, setOffset] = useState(0);
+
+  /**
+   * DAILY / MONTHLY:
+   * 1 day = 1 cell
+   * value = 0..4 (из completionRate)
+   */
+  const dailyValues: HeatmapValue[] = useMemo(
+    () =>
+      progress.map((p) => ({
+        date: p.date,
+        value: rateToScale(p.completionRate),
+      })),
+    [progress]
+  );
 
   return (
     <div className="w-full">
-      {frequency === "daily" && (
-        <DailyHeatmap startDate={startDate} habitId={habitId} offset={offset} />
-      )}
-
-      {frequency === "weekly" && (
-        <WeeklyHeatmap
+      {frequency === "Daily" && (
+        <DailyHeatmap
           startDate={startDate}
-          habitId={habitId}
           offset={offset}
+          values={dailyValues}
         />
       )}
 
-      {frequency === "monthly" && (
+      {frequency === "Weekly" && (
+        <WeeklyHeatmap
+          startDate={startDate}
+          offset={offset}
+          values={dailyValues} // ⬅️ ВАЖНО: передаём дневные значения
+        />
+      )}
+
+      {frequency === "Monthly" && (
         <MonthlyHeatmap
           startDate={startDate}
-          habitId={habitId}
           offset={offset}
+          values={dailyValues}
         />
       )}
 
@@ -42,11 +68,7 @@ export function Heatmap({ startDate, habitId, frequency }: HeatmapProps) {
         onPrev={() => setOffset((o) => o - 1)}
         onNext={() => setOffset((o) => o + 1)}
         canPrev={offset > 0}
-        canNext={true}
-        onDone={(count) => {
-          console.log("Отправка прогресса:", count);
-          // TODO: здесь будет fetch на бекенд
-        }}
+        canNext
       />
     </div>
   );

@@ -146,7 +146,7 @@
 /* Пустые дни */
 .color-empty {
   fill: var(--muted);
-  opacity: 0.25;
+  /* opacity: 0.25; */
 }
 
 /* Легкая активность */

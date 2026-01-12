@@ -13,29 +13,21 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus } from "lucide-react";
 
+import type { Category, HabitFrequency, GoalUnit } from "@/types/habit";
 import {
   createHabit,
   getCategories,
   createCategory,
-  type Category,
-  type GoalUnit,
-  type HabitFrequency,
-} from "@/types/habit";
+} from "@/services/habitService";
 
 /* ---------------- Options ---------------- */
 
-const HABIT_FREQUENCY_OPTIONS = [
-  { label: "Daily", value: "Daily", apiValue: 0 },
-  { label: "Weekly", value: "Weekly", apiValue: 1 },
-  { label: "Monthly", value: "Monthly", apiValue: 2 },
-] as const;
-
-const GOAL_UNIT_OPTIONS = [
-  { label: "Times", value: "Times", apiValue: 0 },
-  { label: "Steps", value: "Steps", apiValue: 1 },
-  { label: "Minutes", value: "Minutes", apiValue: 2 },
-  { label: "Kcal", value: "Kcal", apiValue: 3 },
-] as const;
+const HABIT_FREQUENCY_OPTIONS: HabitFrequency[] = [
+  "Daily",
+  "Weekly",
+  "Monthly",
+];
+const GOAL_UNIT_OPTIONS: GoalUnit[] = ["Times", "Steps", "Minutes", "Kcal"];
 
 /* ---------------- Component ---------------- */
 
@@ -48,76 +40,55 @@ export default function AddHabit() {
 
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [newCategoryUnit, setNewCategoryUnit] =
-    useState<(typeof GOAL_UNIT_OPTIONS)[number]["value"]>("Times");
+  const [newCategoryUnit, setNewCategoryUnit] = useState<GoalUnit>("Times");
 
   const selectedCategory = categories.find((c) => c.id === categoryId) ?? null;
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchCategories = async () => {
       const data = await getCategories();
       setCategories(data);
-
-      if (data.length > 0) {
-        setCategoryId(data[0].id);
-      }
+      if (data.length > 0) setCategoryId(data[0].id);
     };
-
-    fetch();
+    fetchCategories();
   }, []);
 
   /* ---------- Habit fields ---------- */
   const [title, setTitle] = useState("");
-  const [frequency, setFrequency] =
-    useState<(typeof HABIT_FREQUENCY_OPTIONS)[number]["value"]>("Daily");
+  const [frequency, setFrequency] = useState<HabitFrequency>("Daily");
   const [goalValue, setGoalValue] = useState<number>(0);
-  const [goalUnit, setGoalUnit] =
-    useState<(typeof GOAL_UNIT_OPTIONS)[number]["value"]>("Steps");
+  const [goalUnit, setGoalUnit] = useState<GoalUnit>("Steps");
 
   /* при выборе категории — подставляем её defaultUnit */
   useEffect(() => {
     if (!selectedCategory) return;
-
-    const unit = GOAL_UNIT_OPTIONS.find(
-      (u) => u.apiValue === selectedCategory.defaultUnit
-    )?.value;
-
-    if (unit) setGoalUnit(unit);
+    setGoalUnit(selectedCategory.defaultUnit);
   }, [selectedCategory]);
 
   /* ---------- Create category ---------- */
   const handleCreateCategory = async () => {
-    const unitNum =
-      GOAL_UNIT_OPTIONS.find((u) => u.value === newCategoryUnit)?.apiValue ?? 0;
+    if (!newCategoryName) return;
 
     const created = await createCategory({
       name: newCategoryName,
-      defaultUnit: unitNum as GoalUnit,
+      defaultUnit: newCategoryUnit,
     });
 
     setCategories((prev) => [...prev, created]);
     setCategoryId(created.id);
-
     setIsCreatingCategory(false);
     setNewCategoryName("");
-    setGoalUnit(newCategoryUnit);
   };
 
   /* ---------- Submit habit ---------- */
   const handleSubmit = async () => {
-    if (!categoryId) return;
-
-    const freqNum =
-      HABIT_FREQUENCY_OPTIONS.find((f) => f.value === frequency)?.apiValue ?? 0;
-
-    const unitNum =
-      GOAL_UNIT_OPTIONS.find((u) => u.value === goalUnit)?.apiValue ?? 0;
+    if (!categoryId || !title || goalValue <= 0) return;
 
     await createHabit({
       title,
-      frequency: freqNum as HabitFrequency,
+      frequency,
       goalValue,
-      goalUnit: unitNum as GoalUnit,
+      goalUnit,
       startDate: new Date().toISOString(),
       categoryId,
     });
@@ -126,7 +97,6 @@ export default function AddHabit() {
   };
 
   /* ---------------- Render ---------------- */
-
   return (
     <div className="max-w-xl space-y-4 px-2">
       <div className="flex items-center gap-2">
@@ -149,15 +119,15 @@ export default function AddHabit() {
             <Label>Frequency</Label>
             <Select
               value={frequency}
-              onValueChange={(value) => setFrequency(value as typeof frequency)}
+              onValueChange={(v) => setFrequency(v as HabitFrequency)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {HABIT_FREQUENCY_OPTIONS.map((o) => (
-                  <SelectItem key={o.apiValue} value={o.value}>
-                    {o.label}
+                {HABIT_FREQUENCY_OPTIONS.map((f) => (
+                  <SelectItem key={f} value={f}>
+                    {f}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -169,13 +139,9 @@ export default function AddHabit() {
             <Label>Category</Label>
             <Select
               value={categoryId}
-              onValueChange={(v) => {
-                if (v === "__new__") {
-                  setIsCreatingCategory(true);
-                } else {
-                  setCategoryId(v);
-                }
-              }}
+              onValueChange={(v) =>
+                v === "__new__" ? setIsCreatingCategory(true) : setCategoryId(v)
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -183,15 +149,12 @@ export default function AddHabit() {
               <SelectContent>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.isSystem}
+                    {c.name} {c.isSystem && "(system)"}
                   </SelectItem>
                 ))}
-
                 <SelectItem value="__new__">
                   <span className="flex items-center gap-2">
-                    <Plus size={14} />
-                    New category
+                    <Plus size={14} /> New category
                   </span>
                 </SelectItem>
               </SelectContent>
@@ -202,31 +165,26 @@ export default function AddHabit() {
           {isCreatingCategory && (
             <div className="space-y-2 rounded border p-3">
               <Label>New category</Label>
-
               <Input
                 placeholder="Category name"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
               />
-
               <Select
                 value={newCategoryUnit}
-                onValueChange={(value) =>
-                  setNewCategoryUnit(value as typeof newCategoryUnit)
-                }
+                onValueChange={(v) => setNewCategoryUnit(v as GoalUnit)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {GOAL_UNIT_OPTIONS.map((u) => (
-                    <SelectItem key={u.apiValue} value={u.value}>
-                      {u.label}
+                    <SelectItem key={u} value={u}>
+                      {u}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-
               <Button
                 onClick={handleCreateCategory}
                 disabled={!newCategoryName}
@@ -244,20 +202,19 @@ export default function AddHabit() {
                 type="number"
                 min={1}
                 value={goalValue}
-                onChange={(e) => setGoalValue(+e.target.value)}
+                onChange={(e) => setGoalValue(Number(e.target.value))}
               />
-
               <Select
                 value={goalUnit}
-                onValueChange={(value) => setGoalUnit(value as typeof goalUnit)}
+                onValueChange={(v) => setGoalUnit(v as GoalUnit)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {GOAL_UNIT_OPTIONS.map((u) => (
-                    <SelectItem key={u.apiValue} value={u.value}>
-                      {u.label}
+                    <SelectItem key={u} value={u}>
+                      {u}
                     </SelectItem>
                   ))}
                 </SelectContent>

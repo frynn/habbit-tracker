@@ -15,8 +15,8 @@ import { HabitCardSkeleton } from "@/components/CardSkeleton";
 import { EmptyHabitsState } from "@/components/EmptyHabitsState";
 import { HabitSearch } from "@/components/HabitSearch";
 
-import { getHabits } from "@/types/habit";
-import { getCategories } from "@/types/habit";
+import { getHabits } from "@/services/habitService";
+import { getCategories } from "@/services/habitService";
 
 type FilterCategory = {
   id: string;

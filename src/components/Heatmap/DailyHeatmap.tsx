@@ -1,7 +1,12 @@
 import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
+import type { HeatmapValue } from "@/types/heatmap";
 
-import type { HeatmapBaseProps } from "@/types/heatmapBaseProps";
+type Props = {
+  startDate: string;
+  offset: number;
+  values: HeatmapValue[];
+};
 
 function getMonthRange(base: Date, offset: number) {
   const start = new Date(base.getFullYear(), base.getMonth() + offset, 1);
@@ -9,7 +14,7 @@ function getMonthRange(base: Date, offset: number) {
   return { start, end };
 }
 
-export function DailyHeatmap({ startDate, offset }: HeatmapBaseProps) {
+export function DailyHeatmap({ startDate, offset, values }: Props) {
   const base = new Date(startDate);
 
   const months = [
@@ -17,15 +22,6 @@ export function DailyHeatmap({ startDate, offset }: HeatmapBaseProps) {
     getMonthRange(base, offset + 1),
     getMonthRange(base, offset + 2),
   ];
-
-  const values = [...Array(365)].map((_, i) => {
-    const d = new Date(base);
-    d.setDate(d.getDate() + i);
-    return {
-      date: d.toISOString().slice(0, 10),
-      count: Math.floor(Math.random() * 4),
-    };
-  });
 
   return (
     <div className="flex justify-between gap-4">
@@ -41,9 +37,10 @@ export function DailyHeatmap({ startDate, offset }: HeatmapBaseProps) {
             values={values}
             showWeekdayLabels={false}
             showMonthLabels={false}
-            classForValue={(v) =>
-              !v ? "color-scale-0" : `color-scale-${v.count}`
-            }
+            classForValue={(v) => {
+              if (!v || v.value === 0) return "color-empty";
+              return `color-scale-${v.value}`;
+            }}
           />
         </div>
       ))}
