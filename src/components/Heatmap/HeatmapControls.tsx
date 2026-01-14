@@ -9,7 +9,7 @@ type Props = {
   onNext: () => void;
   canPrev: boolean;
   canNext: boolean;
-  onDone?: (count: number) => void; // функция для отметки прогресса
+  onDone?: (count: number) => void;
 };
 
 export function HeatmapControls({
@@ -24,7 +24,6 @@ export function HeatmapControls({
 
   return (
     <div className="flex gap-1 mt-4">
-      {/* Используем модалку вместо обычной кнопки */}
       <ProgressModal habitId={habitId} onDone={onDone} />
 
       <Button

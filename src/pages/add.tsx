@@ -149,7 +149,7 @@ export default function AddHabit() {
               <SelectContent>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name} {c.isSystem && "(system)"}
+                    {c.name} {c.isSystem}
                   </SelectItem>
                 ))}
                 <SelectItem value="__new__">

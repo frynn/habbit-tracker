@@ -152,26 +152,33 @@
 /* Легкая активность */
 .color-scale-1 {
   fill: var(--primary);
+  background-color: var(--primary);
+  color: #fff;
   opacity: 0.35;
 }
 
 /* Средняя активность */
 .color-scale-2 {
   fill: var(--primary);
+  background-color: var(--primary);
+  color: #fff;
   opacity: 0.55;
 }
 
 /* Сильная активность */
 .color-scale-3 {
   fill: var(--primary);
+  background-color: var(--primary);
+  color: #fff;
   opacity: 0.75;
 }
 
 /* Максимум */
 .color-scale-4 {
   fill: var(--primary);
+  background-color: var(--primary);
+  color: #fff;
   opacity: 1;
 }
-
 
 

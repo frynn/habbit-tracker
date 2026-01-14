@@ -1,57 +1,57 @@
 import type { HeatmapValue } from "@/types/heatmap";
-import { startOfWeek, toISO } from "@/assets/helpers";
+import { startOfWeek, rateToScale } from "@/assets/helpers";
+
 type Props = {
   startDate: string;
-  offset: number;
+  offset: number; // листаем по месяцам
   values: HeatmapValue[];
 };
 
-/* -------- component -------- */
-
 export function WeeklyHeatmap({ startDate, offset, values }: Props) {
-  const base = new Date(startDate);
+  const habitStart = new Date(startDate);
 
-  // диапазон: 12 недель
-  const start = startOfWeek(
-    new Date(base.getFullYear(), base.getMonth(), base.getDate() - offset * 7)
+  // 1. Текущий месяц как якорь, сдвиг по offset вперед
+  const today = new Date();
+  const targetMonth = new Date(
+    today.getFullYear(),
+    today.getMonth() + offset,
+    1
   );
-  const end = new Date(start);
-  end.setDate(start.getDate() + 7 * 12);
+  const month = targetMonth.getMonth();
+  const year = targetMonth.getFullYear();
 
-  // weekISO -> values[]
-  const weekMap = new Map<string, number[]>();
+  // 2. Первый понедельник месяца
+  const firstOfMonth = new Date(year, month, 1);
+  const firstWeekStart = startOfWeek(firstOfMonth);
 
-  values.forEach((v) => {
-    const d = new Date(v.date);
-    if (d < start || d > end) return;
-
-    const weekKey = toISO(startOfWeek(d));
-    if (!weekMap.has(weekKey)) weekMap.set(weekKey, []);
-    weekMap.get(weekKey)!.push(v.value);
-  });
-
-  // формируем недели подряд (даже пустые)
   const weeks: { weekStart: Date; value: number }[] = [];
+  let cursor = new Date(firstWeekStart);
 
-  for (let i = 0; i < 12; i++) {
-    const wStart = new Date(start);
-    wStart.setDate(start.getDate() + i * 7);
+  // 3. Формируем 4 недели
+  while (weeks.length < 4) {
+    const weekStart = new Date(cursor);
+    const weekEnd = new Date(cursor);
+    weekEnd.setDate(weekEnd.getDate() + 6);
 
-    const key = toISO(wStart);
-    const vals = weekMap.get(key) ?? [];
+    // Неделя пересекает месяц?
+    if (weekStart.getMonth() === month || weekEnd.getMonth() === month) {
+      let value = 0;
+      if (weekEnd >= habitStart) {
+        const weekValues = values.filter((v) => {
+          const d = new Date(v.date);
+          // Сравниваем понедельники
+          return startOfWeek(d).getTime() === weekStart.getTime();
+        });
+        if (weekValues.length > 0) {
+          value =
+            weekValues.reduce((a, b) => a + b.value, 0) / weekValues.length;
+        }
+      }
+      weeks.push({ weekStart, value });
+    }
 
-    const avg =
-      vals.length === 0
-        ? 0
-        : Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-
-    weeks.push({
-      weekStart: wStart,
-      value: avg, // 0..4
-    });
+    cursor.setDate(cursor.getDate() + 7);
   }
-
-  /* -------- render -------- */
 
   return (
     <div className="grid grid-cols-4 gap-2">

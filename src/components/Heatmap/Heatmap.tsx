@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import type { HabitFrequency } from "@/types/habit";
 import type { HabitProgressDto, HeatmapValue } from "@/types/heatmap";
 
@@ -5,14 +6,16 @@ import { DailyHeatmap } from "./DailyHeatmap";
 import { WeeklyHeatmap } from "./WeeklyHeatmap";
 import { MonthlyHeatmap } from "./MonthlyHeatmap";
 import { HeatmapControls } from "./HeatmapControls";
-import { useMemo, useState } from "react";
+
 import { rateToScale } from "@/assets/helpers";
+import { addOrUpdateHabitProgress } from "@/services/habitService";
 
 type HeatmapProps = {
   habitId: string;
   startDate: string;
   frequency: HabitFrequency;
   progress: HabitProgressDto[];
+  reloadProgress?: () => void; // если есть refetch
 };
 
 export function Heatmap({
@@ -20,22 +23,36 @@ export function Heatmap({
   startDate,
   frequency,
   progress,
+  reloadProgress,
 }: HeatmapProps) {
   const [offset, setOffset] = useState(0);
 
-  /**
-   * DAILY / MONTHLY:
-   * 1 day = 1 cell
-   * value = 0..4 (из completionRate)
-   */
+  // DAILY: 1 день = 1 ячейка
   const dailyValues: HeatmapValue[] = useMemo(
     () =>
       progress.map((p) => ({
         date: p.date,
-        value: rateToScale(p.completionRate),
+        value: rateToScale(p.completionRate), // 0..4
       })),
     [progress]
   );
+
+  const weeklyValues: HeatmapValue[] = progress.map((p) => ({
+    date: p.date,
+    value: rateToScale(p.completionRate),
+  }));
+
+  const monthlyValues: HeatmapValue[] = progress.map((p) => ({
+    date: p.date, // дата прогресса
+    value: rateToScale(p.completionRate), // сразу 0..4
+  }));
+
+  //ОБРАБОТКА КНОПКИ DONE
+  const handleDone = async (count: number) => {
+    const today = new Date().toISOString().slice(0, 10);
+    await addOrUpdateHabitProgress(habitId, today, count);
+    reloadProgress?.();
+  };
 
   return (
     <div className="w-full">
@@ -51,7 +68,7 @@ export function Heatmap({
         <WeeklyHeatmap
           startDate={startDate}
           offset={offset}
-          values={dailyValues} // ⬅️ ВАЖНО: передаём дневные значения
+          values={weeklyValues}
         />
       )}
 
@@ -59,7 +76,7 @@ export function Heatmap({
         <MonthlyHeatmap
           startDate={startDate}
           offset={offset}
-          values={dailyValues}
+          values={monthlyValues}
         />
       )}
 
@@ -69,6 +86,7 @@ export function Heatmap({
         onNext={() => setOffset((o) => o + 1)}
         canPrev={offset > 0}
         canNext
+        onDone={handleDone}
       />
     </div>
   );

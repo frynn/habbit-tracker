@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { BadgeCheck } from "lucide-react";
 
 export function ProgressModal({
-  habitId,
   onDone,
 }: {
   habitId: string;
@@ -24,10 +23,7 @@ export function ProgressModal({
 
   const handleSubmit = () => {
     if (count > 0) {
-      console.log(
-        `Отправка прогресса на бэкенд: habitId=${habitId}, count=${count}`
-      );
-      onDone?.(count); // вызываем заглушку
+      onDone?.(count);
     }
     setCount(0);
     setOpen(false);
@@ -37,7 +33,7 @@ export function ProgressModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="default" className="flex-1">
-          Done for today
+          Done
           <BadgeCheck className="ml-1" />
         </Button>
       </DialogTrigger>
@@ -47,7 +43,7 @@ export function ProgressModal({
           <DialogTitle>Mark Habit Done</DialogTitle>
         </DialogHeader>
         <DialogDescription>
-          Manage your application settings here.
+          Enter how much you completed today.
         </DialogDescription>
 
         <div className="flex flex-col gap-4 mt-2">
