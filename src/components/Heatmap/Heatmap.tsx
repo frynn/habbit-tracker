@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import type { HabitFrequency } from "@/types/habit";
 import type { HabitProgressDto, HeatmapValue } from "@/types/heatmap";
 
@@ -15,7 +15,13 @@ type HeatmapProps = {
   startDate: string;
   frequency: HabitFrequency;
   progress: HabitProgressDto[];
-  reloadProgress?: () => void; // если есть refetch
+  reloadProgress?: () => void;
+};
+
+const HEATMAP_CONFIG = {
+  Daily: { monthsPerView: 3, maxOffset: 6 },
+  Weekly: { monthsPerView: 1, maxOffset: 12 },
+  Monthly: { monthsPerView: 6, maxOffset: 12 },
 };
 
 export function Heatmap({
@@ -26,28 +32,43 @@ export function Heatmap({
   reloadProgress,
 }: HeatmapProps) {
   const [offset, setOffset] = useState(0);
+  const config = HEATMAP_CONFIG[frequency];
 
-  // DAILY: 1 день = 1 ячейка
   const dailyValues: HeatmapValue[] = useMemo(
     () =>
       progress.map((p) => ({
         date: p.date,
-        value: rateToScale(p.completionRate), // 0..4
+        value: rateToScale(p.completionRate),
       })),
-    [progress]
+    [progress],
   );
 
-  const weeklyValues: HeatmapValue[] = progress.map((p) => ({
-    date: p.date,
-    value: rateToScale(p.completionRate),
-  }));
+  const weeklyValues: HeatmapValue[] = useMemo(
+    () =>
+      progress.map((p) => ({
+        date: p.date,
+        value: rateToScale(p.completionRate),
+      })),
+    [progress],
+  );
 
-  const monthlyValues: HeatmapValue[] = progress.map((p) => ({
-    date: p.date, // дата прогресса
-    value: rateToScale(p.completionRate), // сразу 0..4
-  }));
+  const monthlyValues: HeatmapValue[] = useMemo(
+    () =>
+      progress.map((p) => ({
+        date: p.date,
+        value: rateToScale(p.completionRate),
+      })),
+    [progress],
+  );
 
-  //ОБРАБОТКА КНОПКИ DONE
+  const handlePrev = useCallback(() => {
+    setOffset((o) => Math.max(0, o - 1));
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setOffset((o) => (o < config.maxOffset ? o + 1 : o));
+  }, [config.maxOffset]);
+
   const handleDone = async (count: number) => {
     const today = new Date().toISOString().slice(0, 10);
     await addOrUpdateHabitProgress(habitId, today, count);
@@ -55,37 +76,49 @@ export function Heatmap({
   };
 
   return (
-    <div className="w-full">
-      {frequency === "Daily" && (
-        <DailyHeatmap
-          startDate={startDate}
-          offset={offset}
-          values={dailyValues}
-        />
-      )}
+    <div className="w-full space-y-3">
+      {/* Индикатор периода - компактный */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span className="font-medium truncate">{frequency} Progress</span>
+        <span className="text-xs bg-muted px-1.5 py-0.5 rounded truncate">
+          {offset === 0 ? "Current" : `Offset: ${offset}`}
+        </span>
+      </div>
 
-      {frequency === "Weekly" && (
-        <WeeklyHeatmap
-          startDate={startDate}
-          offset={offset}
-          values={weeklyValues}
-        />
-      )}
+      {/* Основной heatmap */}
+      <div className="bg-card rounded border p-2 overflow-hidden">
+        {frequency === "Daily" && (
+          <DailyHeatmap
+            startDate={startDate}
+            offset={offset}
+            values={dailyValues}
+          />
+        )}
 
-      {frequency === "Monthly" && (
-        <MonthlyHeatmap
-          startDate={startDate}
-          offset={offset}
-          values={monthlyValues}
-        />
-      )}
+        {frequency === "Weekly" && (
+          <WeeklyHeatmap
+            startDate={startDate}
+            offset={offset}
+            values={weeklyValues}
+          />
+        )}
 
+        {frequency === "Monthly" && (
+          <MonthlyHeatmap
+            startDate={startDate}
+            offset={offset}
+            values={monthlyValues}
+          />
+        )}
+      </div>
+
+      {/* Управление */}
       <HeatmapControls
         habitId={habitId}
-        onPrev={() => setOffset((o) => o - 1)}
-        onNext={() => setOffset((o) => o + 1)}
+        onPrev={handlePrev}
+        onNext={handleNext}
         canPrev={offset > 0}
-        canNext
+        canNext={offset < config.maxOffset}
         onDone={handleDone}
       />
     </div>

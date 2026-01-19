@@ -27,6 +27,9 @@ export type HabitDto = {
 
   categoryId: string;
   categoryName?: string;
+  
+  currentStreak: number;
+  bestStreak: number;
 
   progress: HabitProgressDto[];
 };

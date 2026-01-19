@@ -11,67 +11,61 @@ import {
   ItemMedia,
 } from "@/components/ui/item";
 import { Footprints, Book, Brush } from "lucide-react";
+import { searchHabits } from "@/services/habitService";
 
-const categoryIcons: Record<string, any> = {
+const categoryIcons: Record<string, React.ElementType> = {
   Health: Footprints,
   Education: Book,
 };
 
-const habitsMock: HabitDto[] = [
-  {
-    id: "a1f1e2c0-1111-4c9b-9c1a-aaa111aaa111",
-    title: "Walk",
-    frequency: "monthly",
-    startDate: "2025-01-10T00:00:00Z",
-    categoryId: "cat-health",
-    categoryName: "Health",
-  },
-  {
-    id: "b2f2e2c0-2222-4c9b-9c1a-bbb222bbb222",
-    title: "Read",
-    frequency: "daily",
-    startDate: "2025-02-03T00:00:00Z",
-    categoryId: "cat-education",
-    categoryName: "Education",
-  },
-  {
-    id: "c3f3e2c0-3333-4c9b-9c1a-ccc333ccc333",
-    title: "Meditate",
-    frequency: "daily",
-    startDate: "2025-03-01T00:00:00Z",
-    categoryId: "cat-mind",
-    categoryName: "Mindfulness",
-  },
-]; // позже API
-
 export function HabitSearch() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<HabitDto[]>([]);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // debounce
+  /* ---------------- Search (debounce + API) ---------------- */
+
   useEffect(() => {
-    if (!query) {
+    if (!query.trim()) {
       setResults([]);
+      abortRef.current?.abort();
       return;
     }
 
-    const t = setTimeout(() => {
-      const q = query.toLowerCase();
-      setResults(habitsMock.filter((h) => h.title.toLowerCase().includes(q)));
+    const t = setTimeout(async () => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      try {
+        setLoading(true);
+        const data = await searchHabits(query);
+        setResults(data);
+      } catch (e: any) {
+        if (e.name !== "AbortError") {
+          setResults([]);
+        }
+      } finally {
+        setLoading(false);
+      }
     }, 300);
 
     return () => clearTimeout(t);
   }, [query]);
 
-  // измеряем input
+  /* ---------------- Measure input ---------------- */
+
   useEffect(() => {
     if (!inputRef.current) return;
     setRect(inputRef.current.getBoundingClientRect());
   }, [results.length]);
+
+  /* ---------------- Render ---------------- */
 
   return (
     <>
@@ -94,24 +88,28 @@ export function HabitSearch() {
             }}
           >
             {results.map((habit) => {
-              const Icon = categoryIcons[habit.categoryName ?? ""] || Brush;
+              const Icon = categoryIcons[habit.categoryName ?? ""] ?? Brush;
 
               return (
                 <div
                   key={habit.id}
                   className="cursor-pointer hover:bg-muted"
-                  onClick={() => navigate(`/habits/${habit.id}`)}
+                  onClick={() => {
+                    setQuery("");
+                    setResults([]);
+                    navigate(`/habits/${habit.id}`);
+                  }}
                 >
                   <Item>
                     <ItemContent>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center">
                         <ItemMedia variant="icon">
                           <Icon className="size-4" />
                         </ItemMedia>
                         <div>
                           <ItemTitle>{habit.title}</ItemTitle>
                           <ItemDescription>
-                            Goal | {habit.frequency}
+                            Goal · {habit.frequency}
                           </ItemDescription>
                         </div>
                       </div>

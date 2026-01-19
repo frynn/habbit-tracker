@@ -15,36 +15,46 @@ import { SettingsSystem } from "./pages/settingsPages/settingsSystem";
 import { SettingsUI } from "./pages/settingsPages/settingsUI";
 import { SettingsMain } from "./pages/settingsPages/settingsMain";
 import { HabitDetails } from "./pages/habitDetails";
+import { Toaster } from "sonner";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-        </Route>
-
-        <Route path="/preview" element={<Preview />} />
-
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/add" element={<AddHabit />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/habits/:habitId" element={<HabitDetails />} />
-
-          <Route path="/settings" element={<SettingsLayout />}>
-            <Route index element={<SettingsMain />} />
-            <Route path="ui" element={<SettingsUI />} />
-            <Route path="system" element={<SettingsSystem />} />
-            <Route path="private" element={<SettingsPrivate />} />
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Route>
-        </Route>
 
-        {/* Redirect все несуществующие */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="/preview" element={<Preview />} />
+
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/add" element={<AddHabit />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/habits/:habitId" element={<HabitDetails />} />
+
+            <Route path="/settings" element={<SettingsLayout />}>
+              <Route index element={<SettingsMain />} />
+              <Route path="ui" element={<SettingsUI />} />
+              <Route path="system" element={<SettingsSystem />} />
+              <Route path="private" element={<SettingsPrivate />} />
+            </Route>
+          </Route>
+
+          {/* Redirect все несуществующие */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </BrowserRouter>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: "font-sans",
+          duration: 4000,
+        }}
+      />
+    </>
   );
 }
 

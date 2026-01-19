@@ -38,6 +38,13 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+  
+  /* Heatmap colors */
+  --heatmap-empty: oklch(0.92 0.01 260);
+  --heatmap-scale-1: #9ae6b4;
+  --heatmap-scale-2: #48bb78;
+  --heatmap-scale-3: #38a169;
+  --heatmap-scale-4: #276749;
 }
 
 /* Тёмная тема */
@@ -73,6 +80,13 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+
+  /* Heatmap colors для темной темы */
+  --heatmap-empty: oklch(0.3 0.03 260);
+  --heatmap-scale-1: #22543d;
+  --heatmap-scale-2: #2d774b;
+  --heatmap-scale-3: #38a169;
+  --heatmap-scale-4: #68d391;
 }
 
 /* Tailwind base patches */
@@ -80,8 +94,42 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Кастомные скроллбары */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 5px;
+    border: 2px solid var(--muted);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+  }
+  
+  /* Скрыть стрелки у input type="number" */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  input[type="number"] {
+    -moz-appearance: textfield;
   }
 }
 
@@ -116,69 +164,324 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  
+  --color-heatmap-empty: var(--heatmap-empty);
+  --color-heatmap-scale-1: var(--heatmap-scale-1);
+  --color-heatmap-scale-2: var(--heatmap-scale-2);
+  --color-heatmap-scale-3: var(--heatmap-scale-3);
+  --color-heatmap-scale-4: var(--heatmap-scale-4);
 }
 
+/* ==================== HEATMAP СТИЛИ ==================== */
+
+/* Базовые стили heatmap */
 .heatmap-container {
   width: 100%;
-  height: 150px;
   overflow: hidden;
+  position: relative;
 }
 
-/* SVG растягиваем по ширине */
-.heatmap-container .react-calendar-heatmap {
+.react-calendar-heatmap svg {
   width: 100%;
   height: 100%;
 }
 
-.react-calendar-heatmap {
-  width: 100%;
-  height: 150px;
-}
-
-/* Все rect имеют скругления */
-.react-calendar-heatmap rect {
-  rx: 2px;
-  ry: 2px;
-}
-
-/* Цвета (используем var(--primary)) */
-
-/* Пустые дни */
-.color-empty {
-  fill: var(--muted);
-  /* opacity: 0.25; */
-}
-
-/* Легкая активность */
-.color-scale-1 {
-  fill: var(--primary);
-  background-color: var(--primary);
-  color: #fff;
-  opacity: 0.35;
-}
-
-/* Средняя активность */
-.color-scale-2 {
-  fill: var(--primary);
-  background-color: var(--primary);
-  color: #fff;
-  opacity: 0.55;
-}
-
-/* Сильная активность */
-.color-scale-3 {
-  fill: var(--primary);
-  background-color: var(--primary);
-  color: #fff;
-  opacity: 0.75;
-}
-
-/* Максимум */
+/* Цвета heatmap ячеек */
+.color-empty,
+.color-scale-1,
+.color-scale-2,
+.color-scale-3,
 .color-scale-4 {
-  fill: var(--primary);
-  background-color: var(--primary);
-  color: #fff;
-  opacity: 1;
+  rx: 3px;
+  ry: 3px;
+  transition: all 0.2s ease;
 }
 
+.color-empty {
+  fill: var(--heatmap-empty);
+}
 
+.color-scale-1 {
+  fill: var(--heatmap-scale-1);
+}
+
+.color-scale-2 {
+  fill: var(--heatmap-scale-2);
+}
+
+.color-scale-3 {
+  fill: var(--heatmap-scale-3);
+}
+
+.color-scale-4 {
+  fill: var(--heatmap-scale-4);
+}
+
+/* Hover эффекты для heatmap */
+.color-scale-1:hover,
+.color-scale-2:hover,
+.color-scale-3:hover,
+.color-scale-4:hover {
+  stroke: var(--foreground);
+  stroke-width: 1.5px;
+  filter: brightness(1.15) saturate(1.1);
+  transform: scale(1.05);
+}
+
+/* Стили для текста в heatmap */
+.react-calendar-heatmap text {
+  font-size: 9px;
+  fill: var(--muted-foreground);
+  font-weight: 500;
+}
+
+/* Анимация появления ячеек */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.react-calendar-heatmap rect,
+[data-heatmap-cell] {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+/* ==================== АДАПТИВНОСТЬ HEATMAP ==================== */
+
+/* Очень маленькие экраны (до 320px) */
+@media (max-width: 320px) {
+  .react-calendar-heatmap {
+    height: 50px !important;
+  }
+  
+  .react-calendar-heatmap rect {
+    width: 6px !important;
+    height: 6px !important;
+    rx: 1px !important;
+    ry: 1px !important;
+  }
+  
+  .react-calendar-heatmap text {
+    font-size: 4px !important;
+  }
+  
+  .daily-heatmap-month {
+    min-width: 70px !important;
+  }
+}
+
+/* Маленькие экраны (321px - 375px) */
+@media (min-width: 321px) and (max-width: 375px) {
+  .react-calendar-heatmap {
+    height: 60px !important;
+  }
+  
+  .react-calendar-heatmap rect {
+    width: 8px !important;
+    height: 8px !important;
+    rx: 1px !important;
+    ry: 1px !important;
+  }
+  
+  .react-calendar-heatmap text {
+    font-size: 4px !important;
+  }
+  
+  .daily-heatmap-month {
+    min-width: 80px !important;
+  }
+}
+
+/* Мобильные (376px - 640px) */
+@media (min-width: 376px) and (max-width: 640px) {
+  .react-calendar-heatmap {
+    height: 70px !important;
+  }
+  
+  .react-calendar-heatmap rect {
+    width: 10px !important;
+    height: 10px !important;
+    rx: 1px !important;
+    ry: 1px !important;
+  }
+  
+  .react-calendar-heatmap text {
+    font-size: 5px !important;
+  }
+  
+  .daily-heatmap-month {
+    min-width: 90px !important;
+  }
+}
+
+/* Планшеты маленькие (641px - 768px) */
+@media (min-width: 641px) and (max-width: 768px) {
+  .react-calendar-heatmap {
+    height: 90px !important;
+  }
+  
+  .react-calendar-heatmap rect {
+    width: 12px !important;
+    height: 12px !important;
+    rx: 2px !important;
+    ry: 2px !important;
+  }
+  
+  .react-calendar-heatmap text {
+    font-size: 6px !important;
+  }
+}
+
+/* Планшеты большие (769px - 1023px) */
+@media (min-width: 769px) and (max-width: 1023px) {
+  .react-calendar-heatmap {
+    height: 120px !important;
+  }
+  
+  .react-calendar-heatmap text {
+    font-size: 7px !important;
+  }
+}
+
+/* Десктоп (1024px и выше) */
+@media (min-width: 1024px) {
+  .react-calendar-heatmap {
+    height: 140px !important;
+  }
+  
+  .react-calendar-heatmap text {
+    font-size: 9px !important;
+  }
+}
+
+/* ==================== СТИЛИ ДЛЯ WEEKLY/MONTHLY HEATMAP ==================== */
+
+/* Weekly и Monthly Heatmap на мобильных */
+@media (max-width: 640px) {
+  .WeeklyHeatmap div,
+  .MonthlyHeatmap div {
+    height: 30px !important;
+    font-size: 10px !important;
+  }
+}
+
+/* ==================== КОНТЕЙНЕРЫ ДЛЯ DAILY HEATMAP ==================== */
+
+.daily-heatmap-container {
+  gap: 4px;
+}
+
+@media (min-width: 641px) {
+  .daily-heatmap-container {
+    gap: 8px;
+  }
+}
+
+/* ==================== КАСТОМНЫЙ СКРОЛЛБАР ==================== */
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--muted-foreground);
+  border-radius: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: var(--foreground);
+}
+
+/* ==================== УТИЛИТЫ ==================== */
+
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+}
+
+.hover-lift {
+  @apply transition-transform duration-200 hover:-translate-y-1;
+}
+
+/* Стили для прогресс-баров */
+.progress-bar {
+  @apply h-2 w-full overflow-hidden rounded-full bg-secondary;
+}
+
+.progress-bar-fill {
+  @apply h-full transition-all duration-300 rounded-full;
+}
+
+/* Стили для скелетона */
+.skeleton {
+  @apply animate-pulse rounded-md bg-muted;
+}
+
+/* ==================== АДАПТИВНОСТЬ ДЛЯ HABIT CARD ==================== */
+
+@media (max-width: 320px) {
+  .HabitCard {
+    padding: 10px !important;
+  }
+  
+  .HabitCard .stats-grid {
+    gap: 6px !important;
+    padding: 6px !important;
+  }
+  
+  .HabitCard .stats-grid span:first-child {
+    font-size: 14px !important;
+  }
+}
+
+@media (min-width: 321px) and (max-width: 640px) {
+  .HabitCard {
+    padding: 12px !important;
+  }
+  
+  .HabitCard .stats-grid {
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+  
+  .HabitCard .stats-grid span:first-child {
+    font-size: 16px !important;
+  }
+}
+
+/* ==================== АДАПТИВНОСТЬ ДЛЯ HEATMAP CONTROLS ==================== */
+
+@media (max-width: 640px) {
+  .heatmap-controls button {
+    min-height: 28px !important;
+    min-width: 28px !important;
+    padding: 2px !important;
+  }
+}
+
+/* ==================== АНИМАЦИИ ДЛЯ МОДАЛЬНЫХ ОКОН ==================== */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
