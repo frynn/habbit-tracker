@@ -2,6 +2,7 @@ export type UserProfileOverviewDto = {
   userId: string;
   email: string;
   username: string;
+  createdAt?: string;
 
   totalHabits: number;
   totalCompletions: number;

@@ -47,6 +47,8 @@ import { getProfileOverview } from "@/services/habitService";
 import type { UserProfileOverviewDto } from "@/types/statistics";
 import { PageContainer } from "@/components/PageContainer";
 import { cn } from "@/lib/utils";
+import { calculateOverallStreaks } from "@/assets/streak-helper";
+import { calculateDaysBetween, formatJoinDate } from "@/assets/helpers";
 
 const categoryIcons: Record<string, React.ElementType> = {
   Health: Heart,
@@ -145,6 +147,17 @@ export default function Profile() {
     );
   }
 
+  // Вычисляем данные после загрузки профиля
+  const overallStreaks = calculateOverallStreaks(profile.habits);
+
+  // Используем createdAt из профиля или fallback на текущую дату минус 1 год
+  const accountCreationDate =
+    profile.createdAt ||
+    new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+  console.log(profile.createdAt);
+  const daysInJourney = calculateDaysBetween(accountCreationDate);
+
+  const joinDateText = formatJoinDate(accountCreationDate);
   const overallLevel = getCompletionLevel(profile.averageCompletionPercentage);
 
   return (
@@ -204,7 +217,7 @@ export default function Profile() {
                   </Badge>
                   <Badge variant="outline" className="gap-1">
                     <Calendar className="h-3 w-3" />
-                    <span>Since {new Date().getFullYear()}</span>
+                    <span>{joinDateText}</span>
                   </Badge>
                 </div>
               </div>
@@ -212,7 +225,7 @@ export default function Profile() {
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Day {Math.floor(Math.random() * 365) + 1}
+                    Day {daysInJourney}
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     of your journey
@@ -423,12 +436,17 @@ export default function Profile() {
                         </div>
                         <span className="font-medium">Current Streak</span>
                       </div>
-                      <Badge className={getStreakBadgeColor(30)}>
-                        {Math.floor(Math.random() * 30) + 1} days
+                      <Badge
+                        className={getStreakBadgeColor(overallStreaks.current)}
+                      >
+                        {overallStreaks.current}{" "}
+                        {overallStreaks.current === 1 ? "day" : "days"}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Keep it going! You're building momentum.
+                      {overallStreaks.current > 0
+                        ? "Keep it going! You're building momentum."
+                        : "Start your streak today!"}
                     </p>
                   </div>
 
@@ -441,11 +459,14 @@ export default function Profile() {
                         <span className="font-medium">Best Streak</span>
                       </div>
                       <Badge className="bg-gradient-to-r from-yellow-500 to-amber-500">
-                        {Math.floor(Math.random() * 90) + 30} days
+                        {overallStreaks.best}{" "}
+                        {overallStreaks.best === 1 ? "day" : "days"}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Your personal record. Aim to beat it!
+                      {overallStreaks.best > 0
+                        ? "Your personal record. Aim to beat it!"
+                        : "Set your first record!"}
                     </p>
                   </div>
                 </div>
@@ -694,14 +715,14 @@ export default function Profile() {
                     <div className="size-10 mx-auto mb-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
                       <Flame className="h-5 w-5 text-white" />
                     </div>
-                    <div className="font-bold">30+</div>
+                    <div className="font-bold">{overallStreaks.current}+</div>
                     <div className="text-xs text-gray-500">Day Streak</div>
                   </div>
                   <div className="text-center p-3 rounded-lg border border-gray-200 dark:border-gray-700">
                     <div className="size-10 mx-auto mb-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
                       <Crown className="h-5 w-5 text-white" />
                     </div>
-                    <div className="font-bold">Consistent</div>
+                    <div className="font-bold">{overallLevel.label}</div>
                     <div className="text-xs text-gray-500">Tracker</div>
                   </div>
                 </div>

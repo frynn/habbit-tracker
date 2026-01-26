@@ -13,7 +13,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="sticky bottom-0 left-0 right-0 h-16 flex items-center justify-around border-t border-gray-300 bg-white dark:bg-gray-800 backdrop-blur supports-[backdrop-filter]:bg-white/60 z-40">
+    <nav className="fixed bottom-0 left-0 right-0 h-16 flex items-center justify-around bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 backdrop-blur supports-[backdrop-filter]:bg-white/60 z-50">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path;
         const Icon = item.icon;
