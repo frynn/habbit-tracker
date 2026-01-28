@@ -1,10 +1,11 @@
-import Login from "@/pages/login";
+import { Outlet } from "react-router-dom";
 
 export default function AuthLayout() {
   return (
-    <div>
-      <h3>This is auth layout</h3>
-      <Login />
+    <div className="max-h-full flex items-center justify-center bg-linear-to-br from-background via-muted/50 to-background">
+      <div className="w-full max-w-md">
+        <Outlet />
+      </div>
     </div>
   );
 }

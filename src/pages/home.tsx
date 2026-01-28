@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -106,16 +105,97 @@ export default function Home() {
     });
   };
 
+  /* ---------- Get selected category names ---------- */
+  const getSelectedCategoryNames = () => {
+    if (selected.includes("all") || selected.length === 0) {
+      return ["All Habits"];
+    }
+
+    return selected
+      .map((id) => {
+        const category = categories.find((c) => c.id === id);
+        return category ? category.name : null;
+      })
+      .filter(Boolean) as string[];
+  };
+
+  /* ---------- Get title based on selection ---------- */
+  const getTitle = () => {
+    const selectedNames = getSelectedCategoryNames();
+
+    if (selectedNames.length === 1) {
+      return selectedNames[0] === "All Habits"
+        ? "All Habits"
+        : `${selectedNames[0]} Habits`;
+    }
+
+    if (selectedNames.length === 2) {
+      return `${selectedNames[0]} & ${selectedNames[1]} Habits`;
+    }
+
+    if (selectedNames.length > 2) {
+      return `${selectedNames[0]}, ${selectedNames[1]} & more`;
+    }
+
+    return "All Habits";
+  };
+
+  /* ---------- Get subtitle based on selection ---------- */
+  const getSubtitle = () => {
+    const selectedNames = getSelectedCategoryNames();
+
+    if (selectedNames.length === 1 && selectedNames[0] === "All Habits") {
+      return `Viewing all ${filteredHabits.length} habits • Track your daily progress`;
+    }
+
+    if (selectedNames.length === 1) {
+      const categoryName = selectedNames[0]
+        .replace(" Habits", "")
+        .toLowerCase();
+      return `${filteredHabits.length} ${categoryName} habits • Stay consistent with your ${categoryName} goals`;
+    }
+
+    if (selectedNames.length === 2) {
+      const cat1 = selectedNames[0].replace(" Habits", "");
+      const cat2 = selectedNames[1].replace(" Habits", "");
+      return `${filteredHabits.length} habits from ${cat1} and ${cat2} categories`;
+    }
+
+    if (selectedNames.length > 2) {
+      return `${filteredHabits.length} habits from ${selectedNames.length} categories`;
+    }
+
+    return `Viewing ${filteredHabits.length} habits`;
+  };
+
+  /* ---------- Get panel subtitle ---------- */
+  const getPanelSubtitle = () => {
+    const selectedNames = getSelectedCategoryNames();
+
+    if (selectedNames.length === 1 && selectedNames[0] === "All Habits") {
+      return "Overview of all your tracked habits";
+    }
+
+    if (selectedNames.length === 1) {
+      const categoryName = selectedNames[0]
+        .replace(" Habits", "")
+        .toLowerCase();
+      return `Focus on your ${categoryName} routines`;
+    }
+
+    return "Custom filtered view of your habits";
+  };
+
   return (
     <PageContainer>
       <div className="min-h-full">
-        {/* Заголовок страницы */}
+        {/* Главный заголовок страницы */}
         <div className="mb-6">
           <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
-            Your Habits
+            {getTitle()}
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            {filteredHabits.length} habits found
+            {getSubtitle()}
           </p>
         </div>
 
@@ -128,10 +208,10 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-              All Habits
+              Habit Dashboard
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Track your daily progress
+              {getPanelSubtitle()}
             </p>
           </div>
 
@@ -140,12 +220,10 @@ export default function Home() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <FilterIcon className="h-4 w-4" />
-                  Filters
-                  {selected.length > 0 && selected[0] !== "all" && (
-                    <span className="ml-1 rounded-full bg-primary text-primary-foreground px-2 py-0.5 text-xs">
-                      {selected.length}
-                    </span>
-                  )}
+                  {selected.includes("all")
+                    ? "All Categories"
+                    : `${selected.length} selected`}
+                  <ChevronDownIcon className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -168,7 +246,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Сетка карточек - исправленные отступы */}
+        {/* Сетка карточек */}
         <div
           className={
             isLoading || isFiltering

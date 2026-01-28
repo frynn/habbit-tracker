@@ -1,6 +1,7 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthLayout from "@/layout/AuthLayout";
+import ProtectedLayout from "@/layout/ProtectedLayout"; // Добавить
 import MainLayout from "@/layout/MainLayout";
 
 import Login from "@/pages/login";
@@ -22,24 +23,29 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          {/* Публичные маршруты (авторизация/регистрация) */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
 
+          {/* Превью доступно всем */}
           <Route path="/preview" element={<Preview />} />
 
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/add" element={<AddHabit />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/habits/:habitId" element={<HabitDetails />} />
+          {/* Защищенные маршруты (требуют авторизации) */}
+          <Route element={<ProtectedLayout />}>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/add" element={<AddHabit />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/habits/:habitId" element={<HabitDetails />} />
 
-            <Route path="/settings" element={<SettingsLayout />}>
-              <Route index element={<SettingsMain />} />
-              <Route path="ui" element={<SettingsUI />} />
-              <Route path="system" element={<SettingsSystem />} />
-              <Route path="private" element={<SettingsPrivate />} />
+              <Route path="/settings" element={<SettingsLayout />}>
+                <Route index element={<SettingsMain />} />
+                <Route path="ui" element={<SettingsUI />} />
+                <Route path="system" element={<SettingsSystem />} />
+                <Route path="private" element={<SettingsPrivate />} />
+              </Route>
             </Route>
           </Route>
 

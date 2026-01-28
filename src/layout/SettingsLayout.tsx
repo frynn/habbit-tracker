@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 export default function SettingsLayout() {
   const navigate = useNavigate();
   return (
-    <div className="pl-2 pr-2 flex flex-col gap-2">
+    <div className="p-2 flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft />
